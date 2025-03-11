@@ -10,5 +10,5 @@ Steps:
 4. Read the instructions and answer the prompts
 5. Find the results in your Desktop folder
 
-## Note
-These scripts are provided "as-is" and come with no warranty. Use them at your own risk.
+> ## Important Note
+> These scripts are provided "as-is" and come with no warranty. Use them at your own risk.
