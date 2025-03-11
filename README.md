@@ -10,7 +10,7 @@ In this project, you can find several approaches aimed at creating an automated 
 2. Navigate to the directory containing the PowerShell scripts.
 3. Execute the script using PowerShell:
     ```powershell
-    .\YourScriptName.ps1
+    powershell -ExecutionPolicy Bypass -File <"your-file-path">
     ```
 4. Alternatively you can follow [these instruction](/CONVERT.md) to generate an executable file
 
