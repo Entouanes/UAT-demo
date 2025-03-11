@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Connectivity UAT</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Network Connectivity User Acceptance Test</h1>
+        <p id="dateTimeDisplay">2025-03-11 10:36:00</p>
+        <p id="userInfo">Loading user info...</p>
+    </header>
+
+    <div class="container">
+        <div id="flashMessage" class="flash-message"></div>
+        
+        <!-- Configuration Section -->
+        <div id="configSection" class="section">
+            <h2>Configuration</h2>
+            <div class="form-group">
+                <label for="changeNumber">Change Number/ID:</label>
+                <input type="text" id="changeNumber" placeholder="Enter the Change Number or ID">
+            </div>
+            
+            <div class="form-group">
+                <label for="connectionType">Connection Type:</label>
+                <select id="connectionType">
+                    <option value="">Select a Connection Type</option>
+                    <option value="LAN">LAN</option>
+                    <option value="WLAN">WLAN</option>
+                    <option value="VPN">VPN</option>
+                </select>
+            </div>
+            
+            <button id="startTestBtn" class="btn btn-primary">Start Test</button>
+        </div>
+        
+        <!-- Progress Indicator -->
+        <div id="testProgress" class="section hidden">
+            <h2>Test Progress</h2>
+            <div class="progress-bar">
+                <div class="progress" id="progressBar"></div>
+            </div>
+            <div class="progress-steps">
+                <div class="step active" id="step1">1. Configuration</div>
+                <div class="step" id="step2">2. Website Tests</div>
+                <div class="step" id="step3">3. Network Info</div>
+                <div class="step" id="step4">4. Application Tests</div>
+                <div class="step" id="step5">5. Results</div>
+            </div>
+        </div>
+        
+        <!-- Website Tests Section -->
+        <div id="websiteTestsSection" class="section hidden">
+            <h2>Website Connectivity Tests</h2>
+            <p><strong>Connection Type:</strong> <span id="connectionTypeDisplay"></span></p>
+            
+            <div id="websiteTests">
+                <div class="test-item" data-url="https://new.abb.com/">
+                    <div class="status-indicator"></div>
+                    <div class="test-details">
+                        <strong>ABB Website</strong>
+                        <div>URL: https://new.abb.com/</div>
+                    </div>
+                    <div class="test-actions">
+                        <button class="btn test-btn">Test</button>
+                        <button class="btn open-btn">Open</button>
+                    </div>
+                </div>
+                
+                <div class="test-item" data-url="https://www.bt.com">
+                    <div class="status-indicator"></div>
+                    <div class="test-details">
+                        <strong>BT Website</strong>
+                        <div>URL: https://www.bt.com</div>
+                    </div>
+                    <div class="test-actions">
+                        <button class="btn test-btn">Test</button>
+                        <button class="btn open-btn">Open</button>
+                    </div>
+                </div>
+                
+                <div class="test-item" data-url="https://insideplus.abb.com">
+                    <div class="status-indicator"></div>
+                    <div class="test-details">
+                        <strong>ABB Inside Plus</strong>
+                        <div>URL: https://insideplus.abb.com</div>
+                    </div>
+                    <div class="test-actions">
+                        <button class="btn test-btn">Test</button>
+                        <button class="btn open-btn">Open</button>
+                    </div>
+                </div>
+                
+                <div class="test-item" data-url="https://abb.sharepoint.com/sites/ABBBusinessServices/default.aspx">
+                    <div class="status-indicator"></div>
+                    <div class="test-details">
+                        <strong>ABB SharePoint</strong>
+                        <div>URL: https://abb.sharepoint.com/sites/ABBBusinessServices/default.aspx</div>
+                    </div>
+                    <div class="test-actions">
+                        <button class="btn test-btn">Test</button>
+                        <button class="btn open-btn">Open</button>
+                    </div>
+                </div>
+                
+                <div class="test-item" data-url="http://ip.zscaler.com/">
+                    <div class="status-indicator"></div>
+                    <div class="test-details">
+                        <strong>Zscaler IP</strong>
+                        <div>URL: http://ip.zscaler.com/</div>
+                    </div>
+                    <div class="test-actions">
+                        <button class="btn test-btn">Test</button>
+                        <button class="btn open-btn">Open</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <button id="getPublicIpBtn" class="btn">Get Public IP Information</button>
+                <div id="publicIpInfo" class="code-display hidden"></div>
+            </div>
+            
+            <button id="websiteTestsNextBtn" class="btn btn-success">Next: Network Information</button>
+        </div>
+        
+        <!-- Network Information Section -->
+        <div id="networkInfoSection" class="section hidden">
+            <h2>Network Information</h2>
+            
+            <div class="form-group">
+                <label>IP Configuration:</label>
+                <button id="getIpConfigBtn" class="btn">Get IP Configuration</button>
+                <div id="ipConfigInfo" class="code-display hidden"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="pingTarget">Ping Test:</label>
+                <div class="input-with-button">
+                    <input type="text" id="pingTarget" value="10.16.124.1">
+                    <button id="pingBtn" class="btn">Ping</button>
+                </div>
+                <div id="pingResults" class="code-display hidden"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="tracertTarget">Traceroute Test:</label>
+                <div class="input-with-button">
+                    <input type="text" id="tracertTarget" value="10.16.124.1">
+                    <button id="tracertBtn" class="btn">Traceroute</button>
+                </div>
+                <div id="tracertResults" class="code-display hidden"></div>
+            </div>
+            
+            <div class="form-group">
+                <button id="getWlanInfoBtn" class="btn">Get WLAN Information</button>
+                <div id="wlanInfo" class="code-display hidden"></div>
+            </div>
+            
+            <button id="networkInfoNextBtn" class="btn btn-success">Next: Application Tests</button>
+        </div>
+        
+        <!-- Application Tests Section -->
+        <div id="appTestsSection" class="section hidden">
+            <h2>Application Tests</h2>
+            
+            <div class="form-group">
+                <h3>Microsoft Teams Test</h3>
+                <div class="test-item">
+                    <div class="status-indicator"></div>
+                    <div class="test-details">
+                        <strong>Teams 1-on-1 Call</strong>
+                        <div>Initiate a Teams call with 1 user, test audio and screen sharing</div>
+                    </div>
+                    <div class="test-actions">
+                        <button class="btn btn-success manual-test-success-btn">Success</button>
+                        <button class="btn btn-danger manual-test-fail-btn">Failed</button>
+                        <button class="btn manual-test-skip-btn">Skip</button>
+                    </div>
+                </div>
+                
+                <div class="test-item">
+                    <div class="status-indicator"></div>
+                    <div class="test-details">
+                        <strong>Teams Group Call</strong>
+                        <div>Initiate a Teams call with multiple users, test audio and screen sharing</div>
+                    </div>
+                    <div class="test-actions">
+                        <button class="btn btn-success manual-test-success-btn">Success</button>
+                        <button class="btn btn-danger manual-test-fail-btn">Failed</button>
+                        <button class="btn manual-test-skip-btn">Skip</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <h3>Outlook/Email Tests</h3>
+                <div class="test-item">
+                    <div class="status-indicator"></div>
+                    <div class="test-details">
+                        <strong>Outlook Desktop</strong>
+                        <div>Send and receive a test email using Outlook desktop application</div>
+                    </div>
+                    <div class="test-actions">
+                        <button class="btn btn-success manual-test-success-btn">Success</button>
+                        <button class="btn btn-danger manual-test-fail-btn">Failed</button>
+                        <button class="btn manual-test-skip-btn">Skip</button>
+                    </div>
+                </div>
+                
+                <div class="test-item" data-url="https://outlook.office365.com">
+                    <div class="status-indicator"></div>
+                    <div class="test-details">
+                        <strong>Outlook Web Access (OWA)</strong>
+                        <div>URL: https://outlook.office365.com</div>
+                    </div>
+                    <div class="test-actions">
+                        <button class="btn open-btn">Open OWA</button>
+                        <button class="btn btn-success manual-test-success-btn">Success</button>
+                        <button class="btn btn-danger manual-test-fail-btn">Failed</button>
+                        <button class="btn manual-test-skip-btn">Skip</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <h3>Printer Test</h3>
+                <div class="test-item">
+                    <div class="status-indicator"></div>
+                    <div class="test-details">
+                        <strong>Network Printer</strong>
+                        <div>Access a network printer and run a test print</div>
+                    </div>
+                    <div class="test-actions">
+                        <button class="btn btn-success manual-test-success-btn">Success</button>
+                        <button class="btn btn-danger manual-test-fail-btn">Failed</button>
+                        <button class="btn manual-test-skip-btn">Skip</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <h3>Security Test</h3>
+                <div class="test-item" data-url="https://secure.eicar.org/eicar.com.txt">
+                    <div class="status-indicator"></div>
+                    <div class="test-details">
+                        <strong>EICAR Test File</strong>
+                        <div>URL: https://secure.eicar.org/eicar.com.txt</div>
+                        <div>Attempt to download the EICAR test file (should be blocked by antivirus)</div>
+                    </div>
+                    <div class="test-actions">
+                        <button class="btn open-btn">Open</button>
+                        <button class="btn btn-success manual-test-success-btn">Blocked</button>
+                        <button class="btn btn-danger manual-test-fail-btn">Not Blocked</button>
+                        <button class="btn manual-test-skip-btn">Skip</button>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="appTestsNextBtn" class="btn btn-success">Next: Results</button>
+        </div>
+        
+        <!-- Results Section -->
+        <div id="resultsSection" class="section hidden">
+            <h2>Test Results</h2>
+            
+            <div class="tabs">
+                <button class="tab active" data-tab="summary">Summary</button>
+                <button class="tab" data-tab="details">Test Details</button>
+                <button class="tab" data-tab="networkInfo">Network Information</button>
+            </div>
+            
+            <div class="tab-content">
+                <div id="summaryTab" class="tab-pane active">
+                    <h3>Test Summary</h3>
+                    <table>
+                        <tr>
+                            <th>Category</th>
+                            <th>Success</th>
+                            <th>Failed</th>
+                            <th>Skipped</th>
+                            <th>Total</th>
+                        </tr>
+                        <tr>
+                            <td>Website Tests</td>
+                            <td id="websiteTestsSuccess">0</td>
+                            <td id="websiteTestsFailed">0</td>
+                            <td id="websiteTestsSkipped">0</td>
+                            <td id="websiteTestsTotal">0</td>
+                        </tr>
+                        <tr>
+                            <td>Application Tests</td>
+                            <td id="appTestsSuccess">0</td>
+                            <td id="appTestsFailed">0</td>
+                            <td id="appTestsSkipped">0</td>
+                            <td id="appTestsTotal">0</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Overall</strong></td>
+                            <td id="overallSuccess">0</td>
+                            <td id="overallFailed">0</td>
+                            <td id="overallSkipped">0</td>
+                            <td id="overallTotal">0</td>
+                        </tr>
+                    </table>
+                    
+                    <div class="form-group">
+                        <label for="userComments">Additional Comments:</label>
+                        <textarea id="userComments" rows="4" placeholder="Add any additional observations or comments here..."></textarea>
+                    </div>
+                </div>
+                
+                <div id="detailsTab" class="tab-pane">
+                    <h3>Test Details</h3>
+                    <table id="detailsTable">
+                        <tr>
+                            <th>Test</th>
+                            <th>URL/Description</th>
+                            <th>Status</th>
+                            <th>Notes</th>
+                        </tr>
+                        <!-- Test details will be populated dynamically -->
+                    </table>
+                </div>
+                
+                <div id="networkInfoTab" class="tab-pane">
+                    <h3>Network Information</h3>
+                    <div id="networkInfoSummary" class="code-display">
+                        <!-- Network information will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button id="saveReportBtn" class="btn btn-primary">Save Report as CSV</button>
+                <button id="newTestBtn" class="btn">Start New Test</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

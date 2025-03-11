@@ -11,8 +11,8 @@
 #                                                                                           #
 #############################################################################################
 
-
-
+# Set window title for better exe experience
+$host.UI.RawUI.WindowTitle = "ABB UAT Automated Test"
 
 # List of URLs to check
 $urls = @(
