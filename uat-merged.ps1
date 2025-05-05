@@ -47,6 +47,35 @@ $headerColor = "Magenta"
 $testResults = @()
 
 #-----------------------------------------------------------
+# Determine Output Base Path
+#-----------------------------------------------------------
+function Get-OutputBasePath {
+    $oneDrivePath = $env:OneDriveCommercial
+    if ([string]::IsNullOrWhiteSpace($oneDrivePath)) {
+        $oneDrivePath = $env:OneDrive
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($oneDrivePath)) {
+        $docsPath = Join-Path -Path $oneDrivePath -ChildPath "Documents"
+        if (Test-Path $docsPath -PathType Container) {
+            return $docsPath
+        }
+        else {
+            # Use root OneDrive folder if Documents subfolder doesn't exist
+            return $oneDrivePath 
+        }
+    }
+    else {
+        Write-Warning "OneDrive path not found (checked \$env:OneDriveCommercial and \$env:OneDrive). Saving results to local Documents folder."
+        return "$($env:UserProfile)\Documents"
+    }
+}
+
+$script:OutputBasePath = Get-OutputBasePath
+Write-InfoMessage "Script results will be saved to: $script:OutputBasePath"
+
+
+#-----------------------------------------------------------
 # Helper Functions
 #-----------------------------------------------------------
 
@@ -138,8 +167,8 @@ function Initialize-TestFiles {
     )
     
     $date = Get-Date -Format "yyyyMMdd_HHmmss"
-    $outputFile = "$($env:UserProfile)\Documents\UAT_$ChangeNumber`_$ConnectionType`_$date.txt"
-    $csvFile = "$($env:UserProfile)\Documents\UAT_$ChangeNumber`_Report_$date.csv"
+    # Use the determined base path for the text file
+    $outputFile = Join-Path -Path $script:OutputBasePath -ChildPath "UAT_$ChangeNumber`_$ConnectionType`_$date.txt"
     
     # Create header in text file
     @"
@@ -155,17 +184,12 @@ Date/Time: $(Get-Date)
 
 "@ | Out-File -FilePath $outputFile
 
-    # Create CSV file with headers if it doesn't exist
-    if (-not (Test-Path $csvFile)) {
-        @"
-"Timestamp","Change Number","Connection Type","Test Category","Test Name","Status","Details"
-"@ | Out-File -FilePath $csvFile -Encoding UTF8
-    }
-
-    return @{
-        TextFile = $outputFile
-        CsvFile = $csvFile
-    }
+    # Return only the text file path
+    return $outputFile
+    # return @{
+    #     TextFile = $outputFile
+    #     CsvFile = $csvFile # Removed
+    # }
 }
 
 function Add-TestResultToCSV {
@@ -220,9 +244,9 @@ if ([string]::IsNullOrWhiteSpace($changeNumber)) {
     Write-InfoMessage "Using default change number: $changeNumber"
 }
 
-# Initialize CSV report
+# Initialize CSV report using the determined base path
 $date = Get-Date -Format "yyyyMMdd_HHmmss"
-$csvReport = "$($env:UserProfile)\Documents\UAT_$changeNumber`_Report_$date.csv"
+$csvReport = Join-Path -Path $script:OutputBasePath -ChildPath "UAT_$changeNumber`_Report_$date.csv"
 "Timestamp,Change Number,Connection Type,Test Category,Test Name,Status,Details" | 
     Out-File -FilePath $csvReport -Encoding UTF8
 
@@ -250,14 +274,15 @@ while ($continueConnectionTests) {
     
     $connectionTypes += $connectionType
     
-    # Initialize output files for this connection type
-    $files = Initialize-TestFiles -ChangeNumber $changeNumber -ConnectionType $connectionType
-    $outputFile = $files.TextFile
-    $csvFile = $files.CsvFile
+    # Initialize output file for this connection type (returns only text file path)
+    $outputFile = Initialize-TestFiles -ChangeNumber $changeNumber -ConnectionType $connectionType
+    # $files = Initialize-TestFiles -ChangeNumber $changeNumber -ConnectionType $connectionType # Old way
+    # $outputFile = $files.TextFile # Old way
+    # $csvFile = $files.CsvFile # Old way - CSV path is now global $csvReport
     
     Write-InfoMessage "Output will be saved to:"
     Write-InfoMessage "  - Text log: $outputFile"
-    Write-InfoMessage "  - CSV report: $csvFile"
+    Write-InfoMessage "  - CSV report: $csvReport" # Use global CSV path
     Write-InfoMessage "Please ensure your computer is connected via $connectionType only."
     Wait-ForConfirmation
     
@@ -666,14 +691,16 @@ Write-Host "  Skipped       : $skippedCount"
 Write-Host ""
 
 Write-InfoMessage "Tests completed for connection types: $($connectionTypes -join ", ")"
-Write-InfoMessage "Report files have been created in your Documents folder:"
+Write-InfoMessage "Report files have been created in '$script:OutputBasePath':" # Use base path
 
 # Show both output file types
-Write-InfoMessage "  - CSV Report: $csvReport"
+Write-InfoMessage "  - CSV Report: $(Split-Path $csvReport -Leaf)" # Show only filename
 foreach ($connType in $connectionTypes) {
-    $date = Get-Date -Format "yyyyMMdd_HHmmss"
-    $file = "$($env:UserProfile)\Documents\UAT_$changeNumber`_$connType`_$date.txt"
-    Write-InfoMessage "  - Text Log ($connType): $file"
+    # Need to reconstruct the approximate filename pattern as exact timestamp is unknown here
+    # Or retrieve the actual filenames saved earlier if needed for precision.
+    # For simplicity, just indicate the pattern and location.
+    $filePattern = "UAT_$changeNumber`_$connType`_*.txt"
+    Write-InfoMessage "  - Text Log ($connType): $filePattern"
 }
 
 # Add summary statistics to CSV report
@@ -703,10 +730,21 @@ if ($addComments -in @("yes", "y")) {
     
     # Add comments to all text logs
     foreach ($connType in $connectionTypes) {
-        $date = Get-Date -Format "yyyyMMdd_HHmmss"
-        $file = "$($env:UserProfile)\Documents\UAT_$changeNumber`_$connType`_$date.txt"
-        "`nADDITIONAL COMMENTS:" | Out-File -FilePath $file -Append
-        $comments | Out-File -FilePath $file -Append
+        # Find the correct text log file for this connection type
+        # This requires finding the file based on pattern as the exact timestamp isn't stored
+        $logFilePattern = "UAT_$changeNumber`_$connType`_*.txt"
+        $logFile = Get-ChildItem -Path $script:OutputBasePath -Filter $logFilePattern | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+        
+        if ($logFile) {
+            "`nADDITIONAL COMMENTS:" | Out-File -FilePath $logFile.FullName -Append
+            $comments | Out-File -FilePath $logFile.FullName -Append
+        } else {
+            Write-Warning "Could not find text log file for $connType in $script:OutputBasePath to add comments."
+        }
+        # $date = Get-Date -Format "yyyyMMdd_HHmmss" # Old way - unreliable timestamp
+        # $file = Join-Path -Path $script:OutputBasePath -ChildPath "UAT_$changeNumber`_$connType`_$date.txt" # Old way
+        # "`nADDITIONAL COMMENTS:" | Out-File -FilePath $file -Append # Old way
+        # $comments | Out-File -FilePath $file -Append # Old way
     }
 }
 
